@@ -12,4 +12,8 @@ export interface ChatRequest {
   model: Model;
   messages: Pick<Message, "role" | "content">[];
   options?: Record<string, unknown>;
+  conversation_id?: string;
 }
+
+export * from "./conversation";
+export * from "./document";

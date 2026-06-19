@@ -8,14 +8,16 @@ const API_BASE = "/chat";
  * response. Each SSE frame (`data: <token>\n\n`) is parsed and the token
  * text is forwarded to the `onToken` callback.
  *
- * @param request  – The chat payload (model, messages, options).
+ * @param request  – The chat payload (model, messages, options, conversation_id).
  * @param onToken  – Called once for every streamed token string.
+ * @param onConversationId - Called once with the conversation ID if provided by the backend.
  * @param signal   – Optional `AbortSignal` to cancel the stream.
  * @returns A promise that resolves when the stream ends.
  */
 export async function streamChat(
   request: ChatRequest,
   onToken: (token: string) => void,
+  onConversationId?: (id: string) => void,
   signal?: AbortSignal,
 ): Promise<void> {
   const response = await fetch(API_BASE, {
@@ -27,6 +29,11 @@ export async function streamChat(
 
   if (!response.ok) {
     throw new Error(`Chat stream failed: ${response.status} ${response.statusText}`);
+  }
+
+  const conversationId = response.headers.get("x-conversation-id");
+  if (conversationId && onConversationId) {
+    onConversationId(conversationId);
   }
 
   const body = response.body;
