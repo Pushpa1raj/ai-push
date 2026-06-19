@@ -3,9 +3,11 @@ import ReactMarkdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github-dark.css";
 import { Message, Model, MODELS, ConversationOut, DocumentOut } from "../types";
+import { MemoryOut } from "../types/memory";
 import { streamChat } from "../services/chatService";
 import { listConversations, getConversation, deleteConversation, renameConversation } from "../services/conversationService";
 import { listDocuments, uploadDocument, deleteDocument } from "../services/documentService";
+import { listMemories, deleteMemory, updateMemory } from "../services/memoryService";
 import { toReadableError } from "../utils/errorUtils";
 
 let nextId = 0;
@@ -17,6 +19,10 @@ const ChatPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversations, setConversations] = useState<ConversationOut[]>([]);
   const [documents, setDocuments] = useState<DocumentOut[]>([]);
+  const [memories, setMemories] = useState<MemoryOut[]>([]);
+  const [editingMemoryId, setEditingMemoryId] = useState<string | null>(null);
+  const [editingMemoryContent, setEditingMemoryContent] = useState("");
+  const [memorySearchQuery, setMemorySearchQuery] = useState("");
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -46,9 +52,19 @@ const ChatPage: React.FC = () => {
     }
   };
 
+  const fetchMemories = async () => {
+    try {
+      const data = await listMemories();
+      setMemories(data);
+    } catch (err) {
+      console.error("Failed to fetch memories:", err);
+    }
+  };
+
   useEffect(() => {
     fetchConversations();
     fetchDocs();
+    fetchMemories();
   }, []);
 
   const handleUploadClick = () => {
@@ -84,6 +100,35 @@ const ChatPage: React.FC = () => {
       setError("Failed to delete document.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteMemory = async (id: string) => {
+    try {
+      setLoading(true);
+      await deleteMemory(id);
+      await fetchMemories();
+    } catch (err) {
+      console.error("Failed to delete memory:", err);
+      setError("Failed to delete memory.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditMemorySubmit = async (id: string) => {
+    if (!editingMemoryContent.trim()) {
+      setEditingMemoryId(null);
+      return;
+    }
+    try {
+      await updateMemory(id, editingMemoryContent.trim());
+      await fetchMemories();
+    } catch (err) {
+      console.error("Failed to update memory:", err);
+      setError("Failed to update memory.");
+    } finally {
+      setEditingMemoryId(null);
     }
   };
 
@@ -213,6 +258,35 @@ const ChatPage: React.FC = () => {
       setEditingId(null);
     }
   };
+
+  const renderMemory = (mem: MemoryOut) => (
+    <div key={mem.id} style={{ padding: "4px", borderRadius: "4px", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      {editingMemoryId === mem.id ? (
+        <input
+          type="text"
+          value={editingMemoryContent}
+          onChange={(e) => setEditingMemoryContent(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleEditMemorySubmit(mem.id);
+            if (e.key === "Escape") setEditingMemoryId(null);
+          }}
+          onBlur={() => handleEditMemorySubmit(mem.id)}
+          autoFocus
+          style={{ flex: 1, marginRight: "4px", minWidth: 0, fontSize: "0.8em" }}
+        />
+      ) : (
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "0.8em", flex: 1, marginRight: "4px" }} title={mem.content}>
+          {mem.content}
+        </span>
+      )}
+      <div style={{ display: "flex", gap: "2px", flexShrink: 0 }}>
+        {editingMemoryId !== mem.id && (
+          <button onClick={() => { setEditingMemoryId(mem.id); setEditingMemoryContent(mem.content); }} disabled={loading} style={{ padding: "2px 4px", fontSize: "0.7em", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}>Edit</button>
+        )}
+        <button onClick={() => handleDeleteMemory(mem.id)} disabled={loading} style={{ padding: "2px 4px", fontSize: "0.7em", backgroundColor: "#ff4444", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}>Del</button>
+      </div>
+    </div>
+  );
 
   return (
     <div style={{ display: "flex", height: "100vh" }}>
@@ -359,6 +433,30 @@ const ChatPage: React.FC = () => {
               </button>
             </div>
           ))}
+        </div>
+
+        <hr style={{ margin: "20px 0" }} />
+        
+        <div style={{ flex: 1, overflowY: "auto" }}>
+          <h3 style={{ margin: 0, marginBottom: "10px" }}>Memories</h3>
+          
+          <input
+            type="text"
+            placeholder="Search memories..."
+            value={memorySearchQuery}
+            onChange={(e) => setMemorySearchQuery(e.target.value)}
+            style={{ width: "100%", boxSizing: "border-box", marginBottom: "10px", padding: "4px" }}
+          />
+          
+          <h4 style={{ margin: "5px 0", fontSize: "0.9em", color: "#666" }}>Episodic</h4>
+          {memories
+            .filter(m => m.memory_type === "episodic" && m.content.toLowerCase().includes(memorySearchQuery.toLowerCase()))
+            .map(renderMemory)}
+
+          <h4 style={{ margin: "10px 0 5px 0", fontSize: "0.9em", color: "#666" }}>Conversational</h4>
+          {memories
+            .filter(m => m.memory_type === "conversational" && m.content.toLowerCase().includes(memorySearchQuery.toLowerCase()))
+            .map(renderMemory)}
         </div>
       </div>
 

@@ -7,6 +7,7 @@ from fastapi.responses import StreamingResponse
 
 from app.api.conversations import router as conversations_router
 from app.api.documents import router as documents_router
+from app.api.memories import router as memories_router
 from app.core.database import SessionLocal, init_db
 from app.core.utils import generate_conversation_title
 from app.models.conversation import Conversation
@@ -23,6 +24,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 app = FastAPI(lifespan=lifespan)
 app.include_router(conversations_router)
 app.include_router(documents_router)
+app.include_router(memories_router)
 ollama_service = OllamaService()
 
 
@@ -66,7 +68,16 @@ def chat(request: dict) -> StreamingResponse:
             
         db.commit()
         
-        # Retrieval step
+        from app.services.retrieval_service import retrieve_chunks, retrieve_memories
+        
+        # Memory retrieval step
+        try:
+            top_memories = retrieve_memories(user_msg_content, db, top_k=5)
+        except Exception as e:
+            print(f"Memory retrieval failed: {e}")
+            top_memories = []
+
+        # RAG Retrieval step
         unique_sources = []
         try:
             top_chunks = retrieve_chunks(user_msg_content, db, top_k=5)
@@ -79,9 +90,19 @@ def chat(request: dict) -> StreamingResponse:
 
     # Prepare modified messages for Ollama
     ollama_messages = list(request.get("messages", []))
-    if ollama_messages and top_chunks:
-        context_text = "\n\n".join([chunk.content for chunk in top_chunks])
-        injected_content = f"CONTEXT:\n{context_text}\n\nUSER:\n{user_msg_content}"
+    if ollama_messages and (top_chunks or top_memories):
+        injected_content = ""
+        
+        if top_memories:
+            memories_text = "\n".join([f"- {mem.content}" for mem in top_memories])
+            injected_content += f"MEMORIES:\n{memories_text}\n\n"
+            
+        if top_chunks:
+            context_text = "\n\n".join([chunk.content for chunk in top_chunks])
+            injected_content += f"CONTEXT:\n{context_text}\n\n"
+            
+        injected_content += f"USER:\n{user_msg_content}"
+        
         # Copy the last message and update content
         ollama_messages[-1] = dict(ollama_messages[-1])
         ollama_messages[-1]["content"] = injected_content
@@ -127,6 +148,22 @@ def chat(request: dict) -> StreamingResponse:
                         conversation.updated_at = datetime.now(timezone.utc)
                         
                     db.commit()
+                    
+                import threading
+                from app.services.memory_service import process_and_save_memories
+                
+                def _extract_and_save():
+                    with SessionLocal() as db:
+                        process_and_save_memories(
+                            user_message=user_msg_content,
+                            assistant_message=assistant_content,
+                            conversation_id=conversation_id,
+                            ollama_service=ollama_service,
+                            db=db,
+                            model=request["model"]
+                        )
+                        
+                threading.Thread(target=_extract_and_save).start()
 
     headers = {"x-conversation-id": conversation_id}
     return StreamingResponse(event_stream(), media_type="text/event-stream", headers=headers)

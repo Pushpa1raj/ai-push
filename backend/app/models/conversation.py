@@ -26,3 +26,7 @@ class Conversation(Base):
     messages: Mapped[list["Message"]] = relationship(
         "Message", back_populates="conversation", cascade="all, delete-orphan"
     )
+    
+    memory_links: Mapped[list["ConversationMemory"]] = relationship(
+        "ConversationMemory", back_populates="conversation", cascade="all, delete-orphan"
+    )

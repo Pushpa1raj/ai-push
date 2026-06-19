@@ -43,3 +43,18 @@ class DocumentOut(BaseModel):
     chunk_count: int
 
     model_config = {"from_attributes": True}
+
+
+class MemoryOut(BaseModel):
+    id: str
+    memory_type: str
+    content: str
+    importance_score: float
+    created_at: datetime
+    expires_at: datetime | None
+
+    model_config = {"from_attributes": True}
+
+
+class MemoryUpdate(BaseModel):
+    content: str

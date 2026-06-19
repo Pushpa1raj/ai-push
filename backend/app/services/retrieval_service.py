@@ -39,3 +39,36 @@ def retrieve_chunks(query: str, db: Session, top_k: int = 5) -> list[DocumentChu
 
     # Extract the top chunks
     return [chunk for score, chunk in scored_chunks[:top_k]]
+
+
+from datetime import datetime, timezone
+from app.models.memory import Memory
+
+def retrieve_memories(query: str, db: Session, top_k: int = 5, threshold: float = 0.5) -> list[Memory]:
+    """
+    Retrieves the most relevant memories for a query.
+    Returns episodic memories first, then conversational.
+    Filters out expired conversational memories.
+    """
+    query_vector = embedding_service.embed_text(query)
+    now = datetime.now(timezone.utc)
+
+    # In a real app we'd query by conversation ID as well if needed,
+    # but the prompt implies global memory search for the user context.
+    all_memories = db.query(Memory).filter(Memory.embedding != None).all()
+
+    scored_memories = []
+    for mem in all_memories:
+        # Filter expired
+        if mem.expires_at and mem.expires_at < now:
+            continue
+            
+        if mem.embedding:
+            score = cosine_similarity(query_vector, mem.embedding)
+            if score >= threshold:
+                scored_memories.append((score, mem))
+
+    # Sort logic: primary key = is_episodic (True > False), secondary key = score (descending)
+    scored_memories.sort(key=lambda x: (x[1].memory_type == "episodic", x[0]), reverse=True)
+
+    return [mem for score, mem in scored_memories[:top_k]]
