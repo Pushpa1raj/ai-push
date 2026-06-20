@@ -153,15 +153,18 @@ def chat(request: dict) -> StreamingResponse:
                 from app.services.memory_service import process_and_save_memories
                 
                 def _extract_and_save():
-                    with SessionLocal() as db:
-                        process_and_save_memories(
-                            user_message=user_msg_content,
-                            assistant_message=assistant_content,
-                            conversation_id=conversation_id,
-                            ollama_service=ollama_service,
-                            db=db,
-                            model=request["model"]
-                        )
+                    try:
+                        with SessionLocal() as db:
+                            process_and_save_memories(
+                                user_message=user_msg_content,
+                                assistant_message=assistant_content,
+                                conversation_id=conversation_id,
+                                ollama_service=ollama_service,
+                                db=db,
+                                model=request["model"]
+                            )
+                    except Exception as e:
+                        print(f"[MEMORY PIPELINE] Error in background extraction thread: {e}")
                         
                 threading.Thread(target=_extract_and_save).start()
 

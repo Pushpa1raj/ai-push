@@ -8,7 +8,7 @@ from urllib.request import Request, urlopen
 class OllamaService:
     base_url = "http://localhost:11434"
 
-    def __init__(self, base_url: str | None = None, timeout: float = 60.0) -> None:
+    def __init__(self, base_url: str | None = None, timeout: float = 300.0) -> None:
         self.base_url = (base_url or self.base_url).rstrip("/")
         self.timeout = timeout
 
@@ -18,12 +18,15 @@ class OllamaService:
         messages: list,
         *,
         options: dict[str, Any] | None = None,
+        format: str | None = None,
     ) -> dict[str, Any]:
         payload: dict[str, Any] = {
             "model": model,
             "messages": messages,
             "stream": False,
         }
+        if format:
+            payload["format"] = format
         if options:
             payload["options"] = options
 

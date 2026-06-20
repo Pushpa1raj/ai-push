@@ -49,6 +49,8 @@ class MemoryOut(BaseModel):
     id: str
     memory_type: str
     content: str
+    category: str
+    importance: int
     importance_score: float
     created_at: datetime
     expires_at: datetime | None

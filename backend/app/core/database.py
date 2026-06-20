@@ -29,5 +29,19 @@ def init_db() -> None:
     """Create all tables. Safe to call multiple times."""
     import app.models.conversation  # noqa: F401 — ensure models are registered
     import app.models.message  # noqa: F401
+    import app.models.memory  # noqa: F401
+    import app.models.document  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
+
+    # Migrate existing memories table: add category and importance columns if missing
+    from sqlalchemy import text, inspect
+    inspector = inspect(engine)
+    existing_columns = {col["name"] for col in inspector.get_columns("memories")}
+    with engine.connect() as conn:
+        if "category" not in existing_columns:
+            conn.execute(text("ALTER TABLE memories ADD COLUMN category VARCHAR DEFAULT 'other'"))
+            conn.commit()
+        if "importance" not in existing_columns:
+            conn.execute(text("ALTER TABLE memories ADD COLUMN importance INTEGER DEFAULT 5"))
+            conn.commit()

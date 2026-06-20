@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Float, ForeignKey, String, JSON
+from sqlalchemy import DateTime, Float, Integer, ForeignKey, String, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -15,6 +15,8 @@ class Memory(Base):
     )
     memory_type: Mapped[str] = mapped_column(String)  # episodic, conversational
     content: Mapped[str] = mapped_column(String)
+    category: Mapped[str] = mapped_column(String, default="other")  # personal, education, project, preference, goal, other
+    importance: Mapped[int] = mapped_column(Integer, default=5)  # 1-10
     importance_score: Mapped[float] = mapped_column(Float, default=0.0)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)

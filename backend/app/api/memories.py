@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.api.schemas import MemoryOut, MemoryUpdate
@@ -9,8 +9,13 @@ router = APIRouter(prefix="/memories", tags=["memories"])
 
 
 @router.get("", response_model=list[MemoryOut])
-def list_memories(db: Session = Depends(get_db)) -> list[Memory]:
-    return db.query(Memory).order_by(Memory.created_at.desc()).all()
+def list_memories(q: str | None = Query(None), db: Session = Depends(get_db)) -> list[Memory]:
+    query = db.query(Memory)
+    if q:
+        query = query.filter(Memory.content.ilike(f"%{q}%"))
+    memories = query.order_by(Memory.created_at.desc()).all()
+    print(f"[MEMORY PIPELINE] GET /memories returning {len(memories)} memories (q={q})")
+    return memories
 
 
 @router.patch("/{memory_id}", response_model=MemoryOut)

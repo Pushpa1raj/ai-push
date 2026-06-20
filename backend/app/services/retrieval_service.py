@@ -71,4 +71,6 @@ def retrieve_memories(query: str, db: Session, top_k: int = 5, threshold: float 
     # Sort logic: primary key = is_episodic (True > False), secondary key = score (descending)
     scored_memories.sort(key=lambda x: (x[1].memory_type == "episodic", x[0]), reverse=True)
 
-    return [mem for score, mem in scored_memories[:top_k]]
+    result = [mem for score, mem in scored_memories[:top_k]]
+    print(f"[MEMORY PIPELINE] Retrieved {len(result)} memories for query: {query}")
+    return result

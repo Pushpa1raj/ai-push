@@ -9,6 +9,10 @@ import { listConversations, getConversation, deleteConversation, renameConversat
 import { listDocuments, uploadDocument, deleteDocument } from "../services/documentService";
 import { listMemories, deleteMemory, updateMemory } from "../services/memoryService";
 import { toReadableError } from "../utils/errorUtils";
+import { 
+  Menu, X, MessageSquare, FileText, Trash2, Edit2, 
+  Send, Brain, Plus, Upload, Check, Folder
+} from "lucide-react";
 
 let nextId = 0;
 function createId(): string {
@@ -20,9 +24,14 @@ const ChatPage: React.FC = () => {
   const [conversations, setConversations] = useState<ConversationOut[]>([]);
   const [documents, setDocuments] = useState<DocumentOut[]>([]);
   const [memories, setMemories] = useState<MemoryOut[]>([]);
+  
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  
   const [editingMemoryId, setEditingMemoryId] = useState<string | null>(null);
   const [editingMemoryContent, setEditingMemoryContent] = useState("");
   const [memorySearchQuery, setMemorySearchQuery] = useState("");
+  const [memoryCategoryFilter, setMemoryCategoryFilter] = useState<string>("all");
+  
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -199,7 +208,6 @@ const ChatPage: React.FC = () => {
       if ((err as Error).name !== "AbortError") {
         console.error("Failed to stream message:", err);
         setError(toReadableError(err));
-        // Remove the empty assistant message on failure
         setMessages((prev) => prev.filter((msg) => msg.id !== assistantId));
       }
     } finally {
@@ -221,19 +229,15 @@ const ChatPage: React.FC = () => {
   };
 
   const handleDeleteConversation = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent loading the conversation
+    e.stopPropagation();
     if (loading) return;
 
     try {
       setLoading(true);
       await deleteConversation(id);
-      
-      // If we deleted the active conversation, clear the chat view
       if (activeConversationId === id) {
         handleClear();
       }
-      
-      // Refresh sidebar
       await fetchConversations();
     } catch (err) {
       console.error("Failed to delete conversation:", err);
@@ -260,7 +264,21 @@ const ChatPage: React.FC = () => {
   };
 
   const renderMemory = (mem: MemoryOut) => (
-    <div key={mem.id} style={{ padding: "4px", borderRadius: "4px", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div key={mem.id} className="card interactive" style={{ display: "flex", flexDirection: "column", gap: "8px", padding: "10px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <span className={`badge cat-${mem.category || "other"}`}>{mem.category || "other"}</span>
+        <div style={{ display: "flex", gap: "2px" }}>
+          {editingMemoryId !== mem.id && (
+            <button className="icon-only" onClick={(e) => { e.stopPropagation(); setEditingMemoryId(mem.id); setEditingMemoryContent(mem.content); }} disabled={loading}>
+              <Edit2 size={14} />
+            </button>
+          )}
+          <button className="icon-only danger" onClick={(e) => { e.stopPropagation(); handleDeleteMemory(mem.id); }} disabled={loading}>
+            <Trash2 size={14} />
+          </button>
+        </div>
+      </div>
+      
       {editingMemoryId === mem.id ? (
         <input
           type="text"
@@ -272,251 +290,272 @@ const ChatPage: React.FC = () => {
           }}
           onBlur={() => handleEditMemorySubmit(mem.id)}
           autoFocus
-          style={{ flex: 1, marginRight: "4px", minWidth: 0, fontSize: "0.8em" }}
+          style={{ width: "100%" }}
         />
       ) : (
-        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "0.8em", flex: 1, marginRight: "4px" }} title={mem.content}>
+        <span style={{ fontSize: "0.85rem", lineHeight: "1.4" }} title={mem.content}>
           {mem.content}
         </span>
       )}
-      <div style={{ display: "flex", gap: "2px", flexShrink: 0 }}>
-        {editingMemoryId !== mem.id && (
-          <button onClick={() => { setEditingMemoryId(mem.id); setEditingMemoryContent(mem.content); }} disabled={loading} style={{ padding: "2px 4px", fontSize: "0.7em", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}>Edit</button>
-        )}
-        <button onClick={() => handleDeleteMemory(mem.id)} disabled={loading} style={{ padding: "2px 4px", fontSize: "0.7em", backgroundColor: "#ff4444", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}>Del</button>
-      </div>
     </div>
   );
 
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
+    <div style={{ display: "flex", height: "100vh", width: "100vw", backgroundColor: "var(--bg-main)" }}>
       {/* Sidebar */}
-      <div style={{ width: "250px", borderRight: "1px solid #ccc", padding: "10px", display: "flex", flexDirection: "column" }}>
-        <button onClick={handleClear} disabled={loading} style={{ marginBottom: "20px" }}>
-          New Chat
-        </button>
-        <div style={{ overflowY: "auto", flex: 1 }}>
-          <h3>Conversations</h3>
-          <input
-            type="text"
-            placeholder="Search chats..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ width: "100%", boxSizing: "border-box", marginBottom: "10px", padding: "4px" }}
-          />
-          {conversations
-            .filter((conv) => conv.title.toLowerCase().includes(searchQuery.toLowerCase()))
-            .map((conv) => (
-            <div
-              key={conv.id}
-              onClick={() => loadConversation(conv.id)}
-              style={{
-                padding: "8px",
-                cursor: "pointer",
-                backgroundColor: activeConversationId === conv.id ? "#eee" : "transparent",
-                color: activeConversationId === conv.id ? "#000" : "inherit",
-                borderRadius: "4px",
-                marginBottom: "4px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center"
-              }}
-            >
-              {editingId === conv.id ? (
-                <input
-                  type="text"
-                  value={editingTitle}
-                  onChange={(e) => setEditingTitle(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleRenameSubmit(conv.id);
-                    if (e.key === "Escape") setEditingId(null);
-                  }}
-                  onBlur={() => handleRenameSubmit(conv.id)}
-                  autoFocus
-                  onClick={(e) => e.stopPropagation()}
-                  style={{ flex: 1, marginRight: "8px", minWidth: 0 }}
-                />
-              ) : (
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, marginRight: "8px" }}>
-                  {conv.title}
-                </span>
-              )}
-              
-              <div style={{ display: "flex", gap: "4px", flexShrink: 0 }}>
-                {editingId !== conv.id && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingId(conv.id);
-                      setEditingTitle(conv.title);
-                    }}
-                    disabled={loading}
-                    style={{
-                      padding: "2px 6px",
-                      fontSize: "0.8em",
-                      backgroundColor: "#4CAF50",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "3px",
-                      cursor: "pointer"
-                    }}
-                  >
-                    Edit
-                  </button>
-                )}
-                <button 
-                  onClick={(e) => handleDeleteConversation(conv.id, e)}
-                  disabled={loading}
-                  style={{ 
-                    padding: "2px 6px",
-                    fontSize: "0.8em",
-                    backgroundColor: "#ff4444",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "3px",
-                    cursor: "pointer"
+      <div style={{
+        width: sidebarOpen ? "320px" : "0",
+        backgroundColor: "var(--bg-sidebar)",
+        borderRight: sidebarOpen ? "1px solid var(--border-color)" : "none",
+        transition: "width 0.3s ease",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden"
+      }}>
+        <div style={{ padding: "16px", flex: 1, display: "flex", flexDirection: "column", overflowY: "auto", minWidth: "320px", gap: "24px" }}>
+          
+          <button className="primary" onClick={handleClear} disabled={loading} style={{ width: "100%", justifyContent: "center", padding: "10px" }}>
+            <Plus size={16} /> New Chat
+          </button>
+
+          {/* Conversations Section */}
+          <section style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: "200px" }}>
+            <div style={{ display: "flex", alignItems: "center", marginBottom: "8px", gap: "8px", color: "var(--text-secondary)" }}>
+              <MessageSquare size={14} />
+              <h3 style={{ margin: 0, fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Conversations</h3>
+            </div>
+            <input
+              type="text"
+              placeholder="Search chats..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ width: "100%", marginBottom: "12px", backgroundColor: "var(--bg-main)" }}
+            />
+            <div style={{ flex: 1, overflowY: "auto" }}>
+              {conversations
+                .filter((conv) => conv.title.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map((conv) => (
+                <div
+                  key={conv.id}
+                  className={`card interactive ${activeConversationId === conv.id ? "active" : ""}`}
+                  onClick={() => loadConversation(conv.id)}
+                  style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}
+                >
+                  {editingId === conv.id ? (
+                    <input
+                      type="text"
+                      value={editingTitle}
+                      onChange={(e) => setEditingTitle(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleRenameSubmit(conv.id);
+                        if (e.key === "Escape") setEditingId(null);
+                      }}
+                      onBlur={() => handleRenameSubmit(conv.id)}
+                      autoFocus
+                      onClick={(e) => e.stopPropagation()}
+                      style={{ flex: 1, minWidth: 0 }}
+                    />
+                  ) : (
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, fontSize: "0.9rem" }}>
+                      {conv.title}
+                    </span>
+                  )}
+                  
+                  <div style={{ display: "flex", gap: "2px", flexShrink: 0 }}>
+                    {editingId !== conv.id && (
+                      <button className="icon-only" onClick={(e) => { e.stopPropagation(); setEditingId(conv.id); setEditingTitle(conv.title); }} disabled={loading}>
+                        <Edit2 size={14} />
+                      </button>
+                    )}
+                    <button className="icon-only danger" onClick={(e) => handleDeleteConversation(conv.id, e)} disabled={loading}>
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Documents Section */}
+          <section style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: "150px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", color: "var(--text-secondary)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <Folder size={14} />
+                <h3 style={{ margin: 0, fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Documents</h3>
+              </div>
+              <button className="icon-only" onClick={handleUploadClick} disabled={loading} title="Upload Document">
+                <Upload size={16} />
+              </button>
+              <input type="file" ref={fileInputRef} style={{ display: "none" }} accept=".pdf,.txt,.md" onChange={handleFileChange} />
+            </div>
+            <div style={{ flex: 1, overflowY: "auto" }}>
+              {documents.map((doc) => (
+                <div key={doc.id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", overflow: "hidden" }}>
+                    <FileText size={16} color="var(--accent-color)" style={{ flexShrink: 0 }} />
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "0.85rem" }} title={doc.filename}>
+                      {doc.filename}
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
+                    <span className="badge" style={{ backgroundColor: "var(--bg-main)", color: "var(--text-secondary)" }}>{doc.chunk_count} ch</span>
+                    <button className="icon-only danger" onClick={() => handleDeleteDocument(doc.id)} disabled={loading}>
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Memories Section */}
+          <section style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: "250px" }}>
+             <div style={{ display: "flex", alignItems: "center", marginBottom: "8px", gap: "8px", color: "var(--text-secondary)" }}>
+              <Brain size={14} />
+              <h3 style={{ margin: 0, fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Memories</h3>
+            </div>
+            <input
+              type="text"
+              placeholder="Search memories..."
+              value={memorySearchQuery}
+              onChange={(e) => setMemorySearchQuery(e.target.value)}
+              style={{ width: "100%", marginBottom: "8px", backgroundColor: "var(--bg-main)" }}
+            />
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", marginBottom: "10px" }}>
+              {["all", "personal", "education", "project", "preference", "goal"].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setMemoryCategoryFilter(cat)}
+                  style={{
+                    padding: "3px 8px",
+                    fontSize: "0.7rem",
+                    borderRadius: "12px",
+                    border: memoryCategoryFilter === cat ? "1px solid var(--accent-color)" : "1px solid var(--border-color)",
+                    backgroundColor: memoryCategoryFilter === cat ? "var(--accent-color)" : "transparent",
+                    color: memoryCategoryFilter === cat ? "#fff" : "var(--text-secondary)",
+                    cursor: "pointer",
+                    textTransform: "capitalize",
                   }}
                 >
-                  Delete
+                  {cat === "all" ? "All" : cat}
                 </button>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
-
-        <hr style={{ margin: "20px 0" }} />
-        
-        <div style={{ flex: 1, overflowY: "auto" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-            <h3 style={{ margin: 0 }}>Documents</h3>
-            <button onClick={handleUploadClick} disabled={loading} style={{ padding: "2px 6px", fontSize: "0.8em", cursor: "pointer" }}>
-              Upload
-            </button>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              style={{ display: "none" }} 
-              accept=".pdf,.txt,.md"
-              onChange={handleFileChange}
-            />
-          </div>
-          
-          {documents.map((doc) => (
-            <div key={doc.id} style={{
-              padding: "8px",
-              backgroundColor: "transparent",
-              borderRadius: "4px",
-              marginBottom: "4px",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center"
-            }}>
-              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "0.9em" }} title={doc.filename}>
-                {doc.filename}
-              </span>
-              <button 
-                onClick={() => handleDeleteDocument(doc.id)}
-                disabled={loading}
-                style={{ 
-                  marginLeft: "8px",
-                  padding: "2px 6px",
-                  fontSize: "0.8em",
-                  backgroundColor: "#ff4444",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "3px",
-                  cursor: "pointer",
-                  flexShrink: 0
-                }}
-              >
-                Delete
-              </button>
+            <div style={{ flex: 1, overflowY: "auto" }}>
+              {memories
+                .filter(m => m.content.toLowerCase().includes(memorySearchQuery.toLowerCase()))
+                .filter(m => memoryCategoryFilter === "all" || m.category === memoryCategoryFilter)
+                .map(renderMemory)}
             </div>
-          ))}
-        </div>
+          </section>
 
-        <hr style={{ margin: "20px 0" }} />
-        
-        <div style={{ flex: 1, overflowY: "auto" }}>
-          <h3 style={{ margin: 0, marginBottom: "10px" }}>Memories</h3>
-          
-          <input
-            type="text"
-            placeholder="Search memories..."
-            value={memorySearchQuery}
-            onChange={(e) => setMemorySearchQuery(e.target.value)}
-            style={{ width: "100%", boxSizing: "border-box", marginBottom: "10px", padding: "4px" }}
-          />
-          
-          <h4 style={{ margin: "5px 0", fontSize: "0.9em", color: "#666" }}>Episodic</h4>
-          {memories
-            .filter(m => m.memory_type === "episodic" && m.content.toLowerCase().includes(memorySearchQuery.toLowerCase()))
-            .map(renderMemory)}
-
-          <h4 style={{ margin: "10px 0 5px 0", fontSize: "0.9em", color: "#666" }}>Conversational</h4>
-          {memories
-            .filter(m => m.memory_type === "conversational" && m.content.toLowerCase().includes(memorySearchQuery.toLowerCase()))
-            .map(renderMemory)}
         </div>
       </div>
 
       {/* Main Chat Area */}
-      <div style={{ flex: 1, padding: "20px", display: "flex", flexDirection: "column" }}>
-        <div>
-          <h1>Chat</h1>
-          <select
-            value={model}
-            onChange={(e) => setModel(e.target.value as Model)}
-            disabled={loading}
-          >
-            {MODELS.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative" }}>
+        
+        {/* Top Header */}
+        <div style={{ display: "flex", alignItems: "center", padding: "16px", borderBottom: "1px solid var(--border-color)", backgroundColor: "var(--bg-sidebar)" }}>
+          <button className="icon-only" onClick={() => setSidebarOpen(!sidebarOpen)} style={{ marginRight: "16px" }}>
+            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1 }}>
+            <h2 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 600 }}>Phus AI</h2>
+            <select value={model} onChange={(e) => setModel(e.target.value as Model)} disabled={loading} style={{ backgroundColor: "var(--bg-main)", marginLeft: "auto" }}>
+              {MODELS.map((m) => <option key={m} value={m}>{m}</option>)}
+            </select>
+          </div>
         </div>
 
-        <div style={{ flex: 1, overflowY: "auto", margin: "20px 0" }}>
-          {messages.length === 0 && <p>No messages yet.</p>}
-          {messages.map((msg) => (
-            <div key={msg.id}>
-              <strong>{msg.role}:</strong>
-              {msg.role === "assistant" ? (
-                <ReactMarkdown rehypePlugins={[rehypeHighlight]}>
-                  {msg.content}
-                </ReactMarkdown>
-              ) : (
-                <span> {msg.content}</span>
-              )}
+        {/* Messages */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "40px 10%", display: "flex", flexDirection: "column", gap: "24px" }}>
+          {messages.length === 0 && (
+            <div style={{ margin: "auto", textAlign: "center", color: "var(--text-secondary)" }}>
+              <Brain size={48} style={{ opacity: 0.5, marginBottom: "16px" }} />
+              <h2>How can I help you today?</h2>
             </div>
-          ))}
-          {loading && <p>Generating…</p>}
+          )}
+          
+          {messages.map((msg, idx) => {
+            const isUser = msg.role === "user";
+            return (
+              <div key={msg.id} style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: isUser ? "flex-end" : "flex-start",
+                width: "100%"
+              }}>
+                <div style={{
+                  maxWidth: "80%",
+                  padding: "12px 16px",
+                  borderRadius: "12px",
+                  backgroundColor: isUser ? "var(--user-bubble)" : "transparent",
+                  color: isUser ? "var(--user-bubble-text)" : "var(--assistant-bubble-text)",
+                  border: isUser ? "none" : "1px solid var(--border-color)",
+                }}>
+                  {isUser ? (
+                    <span style={{ fontSize: "0.95rem", lineHeight: "1.5", whiteSpace: "pre-wrap" }}>{msg.content}</span>
+                  ) : (
+                    <div className="markdown-body" style={{ color: "var(--assistant-bubble-text)" }}>
+                      <ReactMarkdown rehypePlugins={[rehypeHighlight]}>
+                        {msg.content}
+                      </ReactMarkdown>
+                    </div>
+                  )}
+                  {/* Streaming Cursor Logic */}
+                  {!isUser && loading && idx === messages.length - 1 && (
+                    <span className="streaming-cursor"></span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {error && (
-          <div role="alert">
-            <p><strong>Error:</strong> {error}</p>
-            <button onClick={() => setError(null)}>Dismiss</button>
+          <div style={{ margin: "0 10%", padding: "12px", backgroundColor: "rgba(248, 81, 73, 0.1)", border: "1px solid var(--danger-color)", borderRadius: "8px", color: "var(--danger-color)", display: "flex", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "0.9rem" }}><strong>Error:</strong> {error}</span>
+            <button className="icon-only danger" onClick={() => setError(null)}><X size={16} /></button>
           </div>
         )}
 
-        <div>
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSend();
-            }}
-            placeholder="Type a message…"
-            disabled={loading}
-            style={{ width: "80%" }}
-          />
-          <button onClick={handleSend} disabled={loading}>
-            Send
-          </button>
+        {/* Input Bar */}
+        <div style={{ padding: "20px 10%", paddingBottom: "40px" }}>
+          <div style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            backgroundColor: "var(--bg-card)", 
+            border: "1px solid var(--border-color)", 
+            borderRadius: "12px",
+            padding: "8px",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.2)"
+          }}>
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSend();
+              }}
+              placeholder="Message Phus AI..."
+              disabled={loading}
+              style={{ flex: 1, backgroundColor: "transparent", border: "none", outline: "none", fontSize: "1rem", padding: "8px 12px" }}
+            />
+            <button 
+              className="primary"
+              onClick={handleSend} 
+              disabled={loading || !input.trim()}
+              style={{ borderRadius: "8px", padding: "8px 16px" }}
+            >
+              <Send size={16} />
+            </button>
+          </div>
+          <div style={{ textAlign: "center", marginTop: "12px", fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+            AI can make mistakes. Consider verifying important information.
+          </div>
         </div>
+        
       </div>
     </div>
   );
