@@ -16,7 +16,15 @@ def list_memories(q: str | None = Query(None), db: Session = Depends(get_db)) ->
     memories = query.order_by(Memory.created_at.desc()).all()
     print(f"[MEMORY PIPELINE] GET /memories returning {len(memories)} memories (q={q})")
     return memories
-
+@router.get("/{memory_id}", response_model=MemoryOut)
+def get_memory(
+    memory_id: str,
+    db: Session = Depends(get_db),
+) -> Memory:
+    memory = db.get(Memory, memory_id)
+    if not memory:
+        raise HTTPException(status_code=404, detail="Memory not found")
+    return memory
 
 @router.patch("/{memory_id}", response_model=MemoryOut)
 def update_memory(

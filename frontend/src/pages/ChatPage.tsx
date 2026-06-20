@@ -4,6 +4,7 @@ import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github-dark.css";
 import { Message, Model, MODELS, ConversationOut, DocumentOut } from "../types";
 import { MemoryOut } from "../types/memory";
+import { UserProfile } from "../types/profile";
 import { streamChat } from "../services/chatService";
 import { listConversations, getConversation, deleteConversation, renameConversation } from "../services/conversationService";
 import { listDocuments, uploadDocument, deleteDocument } from "../services/documentService";
@@ -11,7 +12,7 @@ import { listMemories, deleteMemory, updateMemory } from "../services/memoryServ
 import { toReadableError } from "../utils/errorUtils";
 import { 
   Menu, X, MessageSquare, FileText, Trash2, Edit2, 
-  Send, Brain, Plus, Upload, Check, Folder
+  Send, Brain, Plus, Upload, Check, Folder, User
 } from "lucide-react";
 
 let nextId = 0;
@@ -24,11 +25,13 @@ const ChatPage: React.FC = () => {
   const [conversations, setConversations] = useState<ConversationOut[]>([]);
   const [documents, setDocuments] = useState<DocumentOut[]>([]);
   const [memories, setMemories] = useState<MemoryOut[]>([]);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   
   const [sidebarOpen, setSidebarOpen] = useState(true);
   
   const [editingMemoryId, setEditingMemoryId] = useState<string | null>(null);
-  const [editingMemoryContent, setEditingMemoryContent] = useState("");
+  const [editingMemoryContent, setEditingMemoryContent] = useState<string>("");
+  const [selectedMemory, setSelectedMemory] = useState<MemoryOut | null>(null);
   const [memorySearchQuery, setMemorySearchQuery] = useState("");
   const [memoryCategoryFilter, setMemoryCategoryFilter] = useState<string>("all");
   
@@ -65,8 +68,23 @@ const ChatPage: React.FC = () => {
     try {
       const data = await listMemories();
       setMemories(data);
+      // Also fetch profile to keep sidebar updated as memories might have changed it
+      fetchProfile();
     } catch (err) {
       console.error("Failed to fetch memories:", err);
+    }
+  };
+
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch("/profile");
+      if (res.ok) {
+        setUserProfile(await res.json());
+      } else {
+        console.error(`Failed to fetch profile: ${res.statusText}`);
+      }
+    } catch (err) {
+      console.error("Failed to fetch profile", err);
     }
   };
 
@@ -74,6 +92,7 @@ const ChatPage: React.FC = () => {
     fetchConversations();
     fetchDocs();
     fetchMemories();
+    fetchProfile();
   }, []);
 
   const handleUploadClick = () => {
@@ -264,11 +283,17 @@ const ChatPage: React.FC = () => {
   };
 
   const renderMemory = (mem: MemoryOut) => (
-    <div key={mem.id} className="card interactive" style={{ display: "flex", flexDirection: "column", gap: "8px", padding: "10px" }}>
+    <div 
+      key={mem.id} 
+      className="card interactive" 
+      style={{ display: "flex", flexDirection: "column", gap: "8px", padding: "10px", cursor: "pointer" }}
+      onClick={() => setSelectedMemory(mem)}
+    >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
           <span className={`badge ${mem.memory_type}`}>{mem.memory_type}</span>
           <span className={`badge cat-${mem.category || "other"}`}>{mem.category || "other"}</span>
+          {!mem.is_active && <span className="badge" style={{ backgroundColor: "var(--border-color)", color: "var(--text-secondary)" }}>Inactive</span>}
         </div>
         <div style={{ display: "flex", gap: "2px" }}>
           {editingMemoryId !== mem.id && (
@@ -409,6 +434,27 @@ const ChatPage: React.FC = () => {
                 </div>
               ))}
             </div>
+          </section>
+
+          {/* Profile Section */}
+          <section style={{ display: "flex", flexDirection: "column", marginBottom: "20px" }}>
+             <div style={{ display: "flex", alignItems: "center", marginBottom: "8px", gap: "8px", color: "var(--text-secondary)" }}>
+              <User size={14} />
+              <h3 style={{ margin: 0, fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Profile</h3>
+            </div>
+            {userProfile ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "0.85rem" }}>
+                {userProfile.college && <div><strong>College:</strong> {userProfile.college}</div>}
+                {userProfile.branch && <div><strong>Branch:</strong> {userProfile.branch}</div>}
+                {userProfile.preferred_language && <div><strong>Language:</strong> {userProfile.preferred_language}</div>}
+                {userProfile.current_project && <div><strong>Project:</strong> {userProfile.current_project}</div>}
+                {!userProfile.college && !userProfile.branch && !userProfile.preferred_language && !userProfile.current_project && (
+                  <span style={{ color: "var(--text-secondary)", fontStyle: "italic" }}>No profile info yet.</span>
+                )}
+              </div>
+            ) : (
+               <span style={{ color: "var(--text-secondary)", fontStyle: "italic", fontSize: "0.85rem" }}>Loading...</span>
+            )}
           </section>
 
           {/* Memories Section */}
@@ -560,6 +606,74 @@ const ChatPage: React.FC = () => {
         </div>
         
       </div>
+      {/* Memory Inspector Modal */}
+      {selectedMemory && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1000,
+          display: "flex", alignItems: "center", justifyContent: "center"
+        }} onClick={() => setSelectedMemory(null)}>
+          <div style={{
+            backgroundColor: "var(--bg-sidebar)",
+            padding: "24px", borderRadius: "12px", width: "400px", maxWidth: "90%",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+            display: "flex", flexDirection: "column", gap: "16px"
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-color)", paddingBottom: "12px" }}>
+              <h3 style={{ margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+                <Brain size={18} /> Memory Inspector
+              </h3>
+              <button className="icon-only" onClick={() => setSelectedMemory(null)}>
+                <X size={18} />
+              </button>
+            </div>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", fontSize: "0.9rem" }}>
+              <div>
+                <strong style={{ color: "var(--text-secondary)", fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Content</strong>
+                <div style={{ backgroundColor: "var(--bg-main)", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
+                  {selectedMemory.content}
+                </div>
+              </div>
+              
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div>
+                  <strong style={{ color: "var(--text-secondary)", fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Type</strong>
+                  <span className={`badge ${selectedMemory.memory_type}`}>{selectedMemory.memory_type}</span>
+                </div>
+                <div>
+                  <strong style={{ color: "var(--text-secondary)", fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Category</strong>
+                  <span className={`badge cat-${selectedMemory.category || "other"}`}>{selectedMemory.category || "other"}</span>
+                </div>
+                <div>
+                  <strong style={{ color: "var(--text-secondary)", fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Importance</strong>
+                  <span>{selectedMemory.importance} / 10</span>
+                </div>
+                <div>
+                  <strong style={{ color: "var(--text-secondary)", fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Status</strong>
+                  <span>{selectedMemory.is_active ? "Active" : "Inactive"}</span>
+                </div>
+              </div>
+
+              <div>
+                <strong style={{ color: "var(--text-secondary)", fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Dates</strong>
+                <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
+                  <div>Created: {new Date(selectedMemory.created_at).toLocaleString()}</div>
+                  {selectedMemory.last_accessed && <div>Last Accessed: {new Date(selectedMemory.last_accessed).toLocaleString()}</div>}
+                  {selectedMemory.expires_at && <div>Expires: {new Date(selectedMemory.expires_at).toLocaleString()}</div>}
+                </div>
+              </div>
+
+              <div>
+                <strong style={{ color: "var(--text-secondary)", fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Memory ID</strong>
+                <code style={{ fontSize: "0.75rem", padding: "4px 8px", backgroundColor: "var(--bg-main)", borderRadius: "4px", border: "1px solid var(--border-color)" }}>
+                  {selectedMemory.id}
+                </code>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

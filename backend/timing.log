@@ -1,0 +1,509 @@
+[TIMING] Profile Retrieval: 0.00s
+[TIMING] RAG Retrieval: 0.67s
+[TIMING] Prompt Build: 0.00s
+[PROMPT SIZE]
+  Total chars: 396
+  Total words: 70
+  Estimated tokens: ~99
+  Memories injected: 0
+  Chunks injected: 0
+  History messages: 1
+  Is profile query: True
+[PROMPT SECTIONS]
+  profile_block: 381 chars (~95 tokens)
+  conversation_history: 0 chars (~0 tokens)
+[STREAMING] Ollama request started at 14:18:14
+[STREAMING] Time to First Token (TTFT): 0.46s
+[STREAMING] Tokens generated: 4182
+[STREAMING] Generation speed: 4.2 tokens/sec
+[TIMING] LLM Generation: 990.54s
+[TIMING] Total Request: 991.57s
+[STREAMING] Tokens generated: 1710
+[STREAMING] Generation speed: 3.1 tokens/sec
+[TIMING] LLM Generation: 543.29s
+[TIMING] Total Request: 544.22s
+[STREAMING] Tokens generated: 4498
+[STREAMING] Generation speed: 14.1 tokens/sec
+[TIMING] LLM Generation: 318.62s
+[TIMING] Total Request: 319.33s
+[TIMING] Memory Extraction: 47.48s
+[ASYNC MEMORY] Completed extraction
+[TIMING] Memory Retrieval: 0.66s
+[TIMING] RAG Retrieval: 0.07s
+[TIMING] Prompt Build: 0.00s
+[PROMPT SIZE]
+  Total chars: 75
+  Total words: 13
+  Estimated tokens: ~18
+  Memories injected: 1
+  Chunks injected: 0
+  History messages: 1
+  Is profile query: False
+[PROMPT SECTIONS]
+  memory_block: 43 chars (~10 tokens)
+  conversation_history: 0 chars (~0 tokens)
+[STREAMING] Ollama request started at 15:41:58
+[STREAMING] Time to First Token (TTFT): 3.14s
+[STREAMING] Tokens generated: 519
+[STREAMING] Generation speed: 16.8 tokens/sec
+[TIMING] LLM Generation: 30.82s
+[TIMING] Total Request: 31.57s
+[TIMING] Memory Extraction: 37.20s
+[ASYNC MEMORY] Completed extraction
+[TIMING] Memory Retrieval: 0.69s
+[TIMING] RAG Retrieval: 0.06s
+[TIMING] Prompt Build: 0.00s
+[PROMPT SIZE]
+  Total chars: 74
+  Total words: 13
+  Estimated tokens: ~18
+  Memories injected: 1
+  Chunks injected: 0
+  History messages: 1
+  Is profile query: False
+[PROMPT SECTIONS]
+  memory_block: 43 chars (~10 tokens)
+  conversation_history: 0 chars (~0 tokens)
+[STREAMING] Ollama request started at 15:53:40
+[STREAMING] Time to First Token (TTFT): 2.98s
+[STREAMING] Tokens generated: 244
+[STREAMING] Generation speed: 15.2 tokens/sec
+[TIMING] LLM Generation: 16.09s
+[TIMING] Total Request: 16.85s
+[TIMING] Memory Extraction: 16.56s
+[ASYNC MEMORY] Completed extraction
+[TIMING] Memory Retrieval: 0.64s
+[TIMING] RAG Retrieval: 0.05s
+[TIMING] Prompt Build: 0.00s
+[PROMPT SIZE]
+  Total chars: 75
+  Total words: 13
+  Estimated tokens: ~18
+  Memories injected: 1
+  Chunks injected: 0
+  History messages: 1
+  Is profile query: False
+[PROMPT SECTIONS]
+  memory_block: 43 chars (~10 tokens)
+  conversation_history: 0 chars (~0 tokens)
+[STREAMING] Ollama request started at 15:59:45
+[STREAMING] Time to First Token (TTFT): 3.52s
+[STREAMING] Tokens generated: 370
+[STREAMING] Generation speed: 15.8 tokens/sec
+[TIMING] LLM Generation: 23.35s
+[TIMING] Total Request: 24.05s
+[TIMING] Memory Retrieval: 0.62s
+[TIMING] RAG Retrieval: 0.05s
+[TIMING] Prompt Build: 0.00s
+[PROMPT SIZE]
+  Total chars: 210
+  Total words: 33
+  Estimated tokens: ~52
+  Memories injected: 1
+  Chunks injected: 0
+  History messages: 2
+  Is profile query: False
+[PROMPT SECTIONS]
+  memory_block: 47 chars (~11 tokens)
+  conversation_history: 131 chars (~32 tokens)
+
+[FINAL PROMPT PAYLOAD SENT TO OLLAMA]
+[SYSTEM]
+You are a helpful assistant. Answer directly. Use memory if relevant. Never reveal internal reasoning. Never output planning steps.
+----------------------------------------
+[USER]
+Memory Facts:
+- User's favorite color is blue
+
+USER:
+My favorite color is blue.
+----------------------------------------
+=====================================
+
+[STREAMING] Ollama request started at 16:08:05
+[STREAMING] Time to First Token (TTFT): 2.81s
+[STREAMING] Time to First Visible Token: 2.81s
+[STREAMING] Tokens generated: 129
+[STREAMING] Generation speed: 13.6 tokens/sec
+[TIMING] LLM Generation: 9.49s
+[TIMING] Total Request: 10.17s
+
+[RAW MODEL OUTPUT]
+Okay, the user just said "My favorite color is blue." I need to check if this aligns with the memory facts provided. The memory facts state that the user's favorite color is blue. So, the user is confirming what's already in the memory. 
+
+I should respond in a way that acknowledges their statement and maybe reinforces the fact without adding extra information. Since the memory already has this, I don't need to update it but can confirm it's correct. The response should be direct and friendly.
+
+Possible response: "That's correct! Your favorite color is blue."
+</think>
+
+That's correct! Your favorite color is blue.
+==================
+
+[THINK DETECTED] length=8 chars
+[THINK REMOVED]
+[TIMING] Memory Extraction: 7.87s
+[ASYNC MEMORY] Completed extraction
+[TIMING] Memory Retrieval: 0.60s
+[TIMING] RAG Retrieval: 0.05s
+[TIMING] Prompt Build: 0.00s
+[PROMPT SIZE]
+  Total chars: 210
+  Total words: 33
+  Estimated tokens: ~52
+  Memories injected: 1
+  Chunks injected: 0
+  History messages: 2
+  Is profile query: False
+[PROMPT SECTIONS]
+  memory_block: 47 chars (~11 tokens)
+  conversation_history: 131 chars (~32 tokens)
+
+[FINAL PROMPT PAYLOAD SENT TO OLLAMA]
+[SYSTEM]
+You are a helpful assistant. Answer directly. Use memory if relevant. Never reveal internal reasoning. Never output planning steps.
+----------------------------------------
+[USER]
+Memory Facts:
+- User's favorite color is blue
+
+USER:
+My favorite color is blue.
+----------------------------------------
+=====================================
+
+[STREAMING] Ollama request started at 16:08:51
+[STREAMING] Time to First Token (TTFT): 6.61s
+[STREAMING] Time to First Visible Token: 6.61s
+[STREAMING] Tokens generated: 8
+[STREAMING] Generation speed: 1.1 tokens/sec
+[TIMING] LLM Generation: 7.04s
+[TIMING] Total Request: 7.71s
+
+[RAW MODEL OUTPUT]
+Great! Blue is a wonderful color.
+==================
+
+[TIMING] Memory Extraction: 2.49s
+[ASYNC MEMORY] Completed extraction
+[TIMING] Memory Retrieval: 0.87s
+[TIMING] RAG Retrieval: 0.04s
+[TIMING] Prompt Build: 0.00s
+[PROMPT SIZE]
+  Total chars: 134
+  Total words: 20
+  Estimated tokens: ~33
+  Memories injected: 0
+  Chunks injected: 0
+  History messages: 2
+  Is profile query: False
+  conversation_history: 131 chars (~32 tokens)
+
+[FINAL PROMPT PAYLOAD SENT TO OLLAMA]
+[SYSTEM]
+You are a helpful assistant. Answer directly. Use memory if relevant. Never reveal internal reasoning. Never output planning steps.
+----------------------------------------
+[USER]
+hii
+----------------------------------------
+=====================================
+
+[STREAMING] Ollama request started at 16:09:34
+[STREAMING] Time to First Token (TTFT): 0.70s
+[STREAMING] Time to First Visible Token: 0.70s
+[STREAMING] Tokens generated: 10
+[STREAMING] Generation speed: 8.1 tokens/sec
+[TIMING] LLM Generation: 1.24s
+[TIMING] Total Request: 2.17s
+
+[RAW MODEL OUTPUT]
+Hello there! How can I help you today?
+==================
+
+[TIMING] Memory Extraction: 2.42s
+[ASYNC MEMORY] Completed extraction
+[TIMING] Memory Retrieval: 0.14s
+[TIMING] RAG Retrieval: 0.02s
+[TIMING] Prompt Build: 0.00s
+[PROMPT SIZE]
+  Total chars: 136
+  Total words: 20
+  Estimated tokens: ~34
+  Memories injected: 0
+  Chunks injected: 0
+  History messages: 2
+  Is profile query: False
+  conversation_history: 131 chars (~32 tokens)
+
+[FINAL PROMPT PAYLOAD SENT TO OLLAMA]
+[SYSTEM]
+You are a helpful assistant. Answer directly. Use memory if relevant. Never reveal internal reasoning. Never output planning steps.
+----------------------------------------
+[USER]
+hello
+----------------------------------------
+=====================================
+
+[STREAMING] Ollama request started at 16:11:59
+[STREAMING] Time to First Token (TTFT): 0.71s
+[STREAMING] Time to First Visible Token: 0.71s
+[STREAMING] Tokens generated: 10
+[STREAMING] Generation speed: 8.0 tokens/sec
+[TIMING] LLM Generation: 1.25s
+[TIMING] Total Request: 1.44s
+
+[RAW MODEL OUTPUT]
+Hello there! How can I help you today?
+==================
+
+[TIMING] Memory Extraction: 2.48s
+[ASYNC MEMORY] Completed extraction
+[TIMING] Memory Retrieval: 0.15s
+[TIMING] RAG Retrieval: 0.03s
+[TIMING] Prompt Build: 0.00s
+[PROMPT SIZE]
+  Total chars: 143
+  Total words: 21
+  Estimated tokens: ~35
+  Memories injected: 0
+  Chunks injected: 0
+  History messages: 2
+  Is profile query: False
+  conversation_history: 131 chars (~32 tokens)
+
+[FINAL PROMPT PAYLOAD SENT TO OLLAMA]
+[SYSTEM]
+You are a helpful assistant. Answer directly. Use memory if relevant. Never reveal internal reasoning. Never output planning steps.
+----------------------------------------
+[USER]
+good morning
+----------------------------------------
+=====================================
+
+[STREAMING] Ollama request started at 16:12:23
+[STREAMING] Time to First Token (TTFT): 3.34s
+[STREAMING] Time to First Visible Token: 3.34s
+[STREAMING] Tokens generated: 222
+[STREAMING] Generation speed: 14.7 tokens/sec
+[TIMING] LLM Generation: 15.07s
+[TIMING] Total Request: 15.26s
+
+[RAW MODEL OUTPUT]
+Okay, the user said "good morning". I need to respond appropriately.
+
+First, I should acknowledge their greeting with a friendly response. Since it's morning, I can add a bit about the day ahead to make it more personal.
+
+I recall that in previous interactions, I've been helpful and straightforward. I should keep it simple and positive.
+
+Possible response: "Good morning! Hope you have a productive day ahead. 😊"
+
+Wait, I need to check if there's any specific context I should consider. The user didn't mention anything else, so it's just a standard greeting.
+
+I should make sure not to overcomplicate it. The response should be warm but concise.
+
+Yes, "Good morning! Hope you have a productive day ahead. 😊" seems perfect.
+
+I don't need to add any extra information since the user just said "good morning". Keeping it simple and friendly is best.
+
+Let me make sure the emoji is appropriate. A smiley face is good for morning greetings.
+
+Okay, that's the response.
+</think>
+
+Good morning! Hope you have a productive day ahead. 😊
+==================
+
+[THINK DETECTED] length=8 chars
+[THINK REMOVED]
+[TIMING] Memory Retrieval: 0.55s
+[TIMING] RAG Retrieval: 0.04s
+[TIMING] Prompt Build: 0.00s
+[PROMPT SIZE]
+  Total chars: 143
+  Total words: 21
+  Estimated tokens: ~35
+  Memories injected: 0
+  Chunks injected: 0
+  History messages: 2
+  Is profile query: False
+  conversation_history: 131 chars (~32 tokens)
+
+[FINAL PROMPT PAYLOAD SENT TO OLLAMA]
+[SYSTEM]
+You are a helpful assistant. Answer directly. Use memory if relevant. Never reveal internal reasoning. Never output planning steps.
+----------------------------------------
+[USER]
+good morning
+----------------------------------------
+=====================================
+
+[STREAMING] Ollama request started at 16:12:56
+[TIMING] Memory Extraction: 18.82s
+[ASYNC MEMORY] Completed extraction
+[STREAMING] Time to First Token (TTFT): 6.67s
+[STREAMING] Time to First Visible Token: 6.67s
+[STREAMING] Tokens generated: 13
+[STREAMING] Generation speed: 1.8 tokens/sec
+[TIMING] LLM Generation: 7.38s
+[TIMING] Total Request: 7.99s
+
+[RAW MODEL OUTPUT]
+Good morning to you too! How can I help you today?
+==================
+
+[TIMING] Memory Extraction: 3.09s
+[ASYNC MEMORY] Completed extraction
+[TIMING] Memory Retrieval: 0.60s
+[TIMING] RAG Retrieval: 0.04s
+[TIMING] Prompt Build: 0.00s
+[PROMPT SIZE]
+  Total chars: 143
+  Total words: 21
+  Estimated tokens: ~35
+  Memories injected: 0
+  Chunks injected: 0
+  History messages: 2
+  Is profile query: False
+  conversation_history: 131 chars (~32 tokens)
+
+[FINAL PROMPT PAYLOAD SENT TO OLLAMA]
+[SYSTEM]
+You are a helpful assistant. Answer directly. Use memory if relevant. Never reveal internal reasoning. Never output planning steps.
+----------------------------------------
+[USER]
+good morning
+----------------------------------------
+=====================================
+
+[STREAMING] Ollama request started at 16:23:27
+[STREAMING] Time to First Token (TTFT): 3.29s
+[STREAMING] Time to First Visible Token: 3.29s
+[STREAMING] Tokens generated: 46
+[STREAMING] Generation speed: 8.0 tokens/sec
+[TIMING] LLM Generation: 5.72s
+[TIMING] Total Request: 6.39s
+
+[RAW MODEL OUTPUT]
+Okay, the user said "good morning". I need to respond appropriately. Let me think.
+
+First, I should acknowledge their greeting. Since it's morning, maybe add a friendly note about the day. Keep it simple and positive
+==================
+
+[TIMING] Memory Retrieval: 0.58s
+[TIMING] RAG Retrieval: 0.04s
+[TIMING] Prompt Build: 0.00s
+[PROMPT SIZE]
+  Total chars: 143
+  Total words: 21
+  Estimated tokens: ~35
+  Memories injected: 0
+  Chunks injected: 0
+  History messages: 2
+  Is profile query: False
+  conversation_history: 131 chars (~32 tokens)
+
+[FINAL PROMPT PAYLOAD SENT TO OLLAMA]
+[SYSTEM]
+You are a helpful assistant. Answer directly. Use memory if relevant. Never reveal internal reasoning. Never output planning steps.
+----------------------------------------
+[USER]
+good morning
+----------------------------------------
+=====================================
+
+[STREAMING] Ollama request started at 16:23:40
+[STREAMING] Time to First Token (TTFT): 5.71s
+[STREAMING] Time to First Visible Token: 5.72s
+[STREAMING] Tokens generated: 13
+[STREAMING] Generation speed: 2.0 tokens/sec
+[TIMING] LLM Generation: 6.48s
+[TIMING] Total Request: 7.11s
+
+[RAW MODEL OUTPUT]
+Good morning to you too! How can I help you today?
+==================
+
+[TIMING] Memory Extraction: 2.94s
+[ASYNC MEMORY] Completed extraction
+[TIMING] Memory Retrieval: 0.92s
+[TIMING] RAG Retrieval: 0.05s
+[TIMING] Prompt Build: 0.00s
+[PROMPT SIZE]
+  Total chars: 133
+  Total words: 20
+  Estimated tokens: ~33
+  Memories injected: 0
+  Chunks injected: 0
+  History messages: 2
+  Is profile query: False
+  conversation_history: 131 chars (~32 tokens)
+
+[FINAL PROMPT PAYLOAD SENT TO OLLAMA]
+[SYSTEM]
+You are a helpful assistant. Answer directly. Use memory if relevant. Never reveal internal reasoning. Never output planning steps.
+----------------------------------------
+[USER]
+hi
+----------------------------------------
+=====================================
+
+[STREAMING] Ollama request started at 16:26:15
+[STREAMING] Time to First Token (TTFT): 0.75s
+[STREAMING] Time to First Visible Token: 0.75s
+[STREAMING] Tokens generated: 10
+[STREAMING] Generation speed: 7.7 tokens/sec
+[TIMING] LLM Generation: 1.30s
+[TIMING] Total Request: 2.29s
+
+[RAW MODEL OUTPUT]
+Hello there! How can I help you today?
+==================
+
+[TIMING] Memory Extraction: 2.89s
+[ASYNC MEMORY] Completed extraction
+[TIMING] Profile Retrieval: 0.01s
+[TIMING] RAG Retrieval: 0.17s
+[TIMING] Prompt Build: 0.00s
+[PROMPT SIZE]
+  Total chars: 315
+  Total words: 53
+  Estimated tokens: ~78
+  Memories injected: 0
+  Chunks injected: 0
+  History messages: 2
+  Is profile query: True
+[PROMPT SECTIONS]
+  profile_block: 142 chars (~35 tokens)
+  conversation_history: 131 chars (~32 tokens)
+
+[FINAL PROMPT PAYLOAD SENT TO OLLAMA]
+[SYSTEM]
+You are a helpful assistant. Answer directly. Use memory if relevant. Never reveal internal reasoning. Never output planning steps.
+----------------------------------------
+[USER]
+=== PROFILE FACTS ===
+[Education]
+- User studies at Techno Main Salt Lake
+
+[Preferences]
+- User's favorite color is blue
+=== END PROFILE ===
+
+USER:
+Who am I? What do you know about me?
+----------------------------------------
+=====================================
+
+[STREAMING] Ollama request started at 16:28:15
+[STREAMING] Time to First Token (TTFT): 0.99s
+[STREAMING] Time to First Visible Token: 1.00s
+[STREAMING] Tokens generated: 16
+[STREAMING] Generation speed: 8.1 tokens/sec
+[TIMING] LLM Generation: 1.97s
+[TIMING] Total Request: 2.16s
+
+[RAW MODEL OUTPUT]
+You are a student at Techno Main Salt Lake. Your favorite color is blue.
+==================
+
+[TIMING] Memory Extraction: 9.83s
+[ASYNC MEMORY] Completed extraction

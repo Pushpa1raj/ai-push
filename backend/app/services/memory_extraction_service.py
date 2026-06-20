@@ -1,17 +1,19 @@
 import json
 
 from app.services.ollama_service import OllamaService
+from app.core.config import get_active_model
 
 VALID_CATEGORIES = {"personal", "education", "project", "preference", "goal", "other"}
 VALID_TYPES = {"semantic", "episodic"}
 
 SYSTEM_PROMPT = """
-You are a highly precise memory extraction system. Analyze the user and assistant messages and extract two types of memories: 'semantic' (facts, preferences, knowledge) and 'episodic' (events, actions, experiences).
+You are a highly precise memory extraction system. Extract two types of memories from the user messages: 'semantic' (facts, preferences, knowledge) and 'episodic' (events, actions, experiences).
 
 RULES:
 - semantic: Facts, user preferences, long-term goals, affiliations, knowledge.
 - episodic: Events that happened, actions taken, deployments, uploads, things done on a specific day.
-- DO NOT save low-value facts, temporary questions, greetings, or random facts.
+- DO NOT save low-value facts, temporary questions, greetings, small talk, acknowledgements, thanks, or casual chat.
+- If the conversation contains no valuable memory facts, you MUST return an empty list: []
 
 Each memory must include:
 - type: "semantic" or "episodic"
@@ -19,7 +21,7 @@ Each memory must include:
 - category: one of "personal", "education", "project", "preference", "goal", "other"
 - importance: integer from 1 to 10
 
-Format your response as a JSON list of objects. Return an empty list [] if nothing is worth remembering.
+Format your response as a JSON array of objects. Return an empty list [] if nothing is worth remembering. Do NOT return an object containing the user message. Return ONLY the JSON array.
 
 Example format:
 [
@@ -31,21 +33,27 @@ Example format:
 ]
 """
 
-def extract_memories(user_message: str, assistant_message: str, ollama_service: OllamaService, model: str = "qwen3:4b") -> list[dict[str, str]]:
+def extract_memories(user_message: str, ollama_service: OllamaService) -> list[dict[str, str]]:
     """
-    Extracts potential memory candidates from a conversation turn.
+    Extracts potential memory candidates from a conversation turn based ONLY on the user's message.
     Returns a list of extracted memory dictionaries with 'type', 'content', 'category', and 'importance'.
     """
-    prompt = f"USER MESSAGE: {user_message}\nASSISTANT MESSAGE: {assistant_message}\n\nExtract memories based on the rules."
+    prompt = f"USER MESSAGE: {user_message}\n\nExtract memories based on the rules. Remember to return ONLY a JSON array."
     
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": prompt}
     ]
     
+    print(f"\n[MEMORY PIPELINE] Extraction Prompt:")
+    print(prompt)
+    print("-" * 40)
+    
     try:
+        model_name = get_active_model()
+        print(f"[MODEL] Using model: {model_name} for memory extraction")
         response = ollama_service.generate(
-            model=model,
+            model=model_name,
             messages=messages,
             options={"temperature": 0.0},
             format="json"
@@ -64,20 +72,21 @@ def extract_memories(user_message: str, assistant_message: str, ollama_service: 
             
         parsed_data = json.loads(content)
         
-        # If the model returned a single object, wrap it in a list
+        # If the model returned a single valid object, wrap it in a list
         if isinstance(parsed_data, dict):
-            memories = [parsed_data]
+            if "type" in parsed_data and "content" in parsed_data:
+                memories = [parsed_data]
+            else:
+                memories = []
         elif isinstance(parsed_data, list):
             memories = parsed_data
         else:
             memories = []
             
-        print(f"[MEMORY PIPELINE] Parsed {len(memories)} memories")
-        if memories:
-            valid_memories = []
-            for m in memories:
-                if isinstance(m, dict) and "type" in m and "content" in m:
-                    # Extract and validate type
+        valid_memories = []
+        for m in memories:
+            if isinstance(m, dict) and "type" in m and "content" in m:
+                # Extract and validate type
                     m_type = str(m["type"]).lower()
                     if m_type not in VALID_TYPES:
                         m_type = "semantic"  # default facts to semantic
@@ -104,7 +113,9 @@ def extract_memories(user_message: str, assistant_message: str, ollama_service: 
                         "category": category,
                         "importance": importance,
                     })
-            return valid_memories
+        
+        print(f"[MEMORY PIPELINE] Parsed {len(valid_memories)} valid memories")
+        return valid_memories
     except Exception as e:
         print(f"[MEMORY PIPELINE] Error extracting memories: {e}")
         

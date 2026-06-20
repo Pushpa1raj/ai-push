@@ -31,6 +31,7 @@ def init_db() -> None:
     import app.models.message  # noqa: F401
     import app.models.memory  # noqa: F401
     import app.models.document  # noqa: F401
+    import app.models.user_profile  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
 
@@ -44,4 +45,10 @@ def init_db() -> None:
             conn.commit()
         if "importance" not in existing_columns:
             conn.execute(text("ALTER TABLE memories ADD COLUMN importance INTEGER DEFAULT 5"))
+            conn.commit()
+        if "last_accessed" not in existing_columns:
+            conn.execute(text("ALTER TABLE memories ADD COLUMN last_accessed DATETIME"))
+            conn.commit()
+        if "is_active" not in existing_columns:
+            conn.execute(text("ALTER TABLE memories ADD COLUMN is_active BOOLEAN DEFAULT 1"))
             conn.commit()

@@ -4,9 +4,9 @@ export interface Message {
   content: string;
 }
 
-export type Model = "qwen3:4b" | "gemma3:4b" | "gemma4:e2b";
+export type Model = "gemma3:4b";
 
-export const MODELS: readonly Model[] = ["qwen3:4b", "gemma3:4b", "gemma4:e2b"] as const;
+export const MODELS: readonly Model[] = ["gemma3:4b"] as const;
 
 export interface ChatRequest {
   model: Model;

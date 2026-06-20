@@ -19,11 +19,13 @@ class OllamaService:
         *,
         options: dict[str, Any] | None = None,
         format: str | None = None,
+        think: bool = False,
     ) -> dict[str, Any]:
         payload: dict[str, Any] = {
             "model": model,
             "messages": messages,
             "stream": False,
+            "think": think,
         }
         if format:
             payload["format"] = format
@@ -38,11 +40,13 @@ class OllamaService:
         messages: list,
         *,
         options: dict[str, Any] | None = None,
+        think: bool = False,
     ) -> Iterator[dict[str, Any]]:
         payload: dict[str, Any] = {
             "model": model,
             "messages": messages,
             "stream": True,
+            "think": think,
         }
         if options:
             payload["options"] = options
@@ -53,6 +57,19 @@ class OllamaService:
                 for line in response:
                     if line:
                         yield json.loads(line.decode("utf-8"))
+        except HTTPError as error:
+            detail = error.read().decode("utf-8")
+            raise RuntimeError(f"Ollama request failed: {error.code} {detail}") from error
+        except URLError as error:
+            raise RuntimeError(f"Unable to connect to Ollama at {self.base_url}") from error
+    def list_models(self) -> dict[str, Any]:
+        return self._get_json("/api/tags")
+
+    def _get_json(self, path: str) -> dict[str, Any]:
+        request = Request(f"{self.base_url}{path}", method="GET")
+        try:
+            with urlopen(request, timeout=self.timeout) as response:
+                return json.loads(response.read().decode("utf-8"))
         except HTTPError as error:
             detail = error.read().decode("utf-8")
             raise RuntimeError(f"Ollama request failed: {error.code} {detail}") from error

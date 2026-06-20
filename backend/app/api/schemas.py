@@ -53,10 +53,24 @@ class MemoryOut(BaseModel):
     importance: int
     importance_score: float
     created_at: datetime
+    last_accessed: datetime | None
     expires_at: datetime | None
+    is_active: bool
 
     model_config = {"from_attributes": True}
 
 
 class MemoryUpdate(BaseModel):
     content: str
+
+
+class UserProfileOut(BaseModel):
+    name: str | None
+    college: str | None
+    branch: str | None
+    year: str | None
+    sgpa: str | None
+    preferred_language: str | None
+    current_project: str | None
+
+    model_config = {"from_attributes": True}
