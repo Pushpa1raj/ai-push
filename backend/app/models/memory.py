@@ -13,7 +13,7 @@ class Memory(Base):
     id: Mapped[str] = mapped_column(
         String, primary_key=True, default=lambda: str(uuid.uuid4())
     )
-    memory_type: Mapped[str] = mapped_column(String)  # episodic, conversational
+    memory_type: Mapped[str] = mapped_column(String)  # semantic, episodic
     content: Mapped[str] = mapped_column(String)
     category: Mapped[str] = mapped_column(String, default="other")  # personal, education, project, preference, goal, other
     importance: Mapped[int] = mapped_column(Integer, default=5)  # 1-10

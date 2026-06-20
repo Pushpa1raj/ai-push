@@ -162,13 +162,13 @@ button.icon-only:hover:not(:disabled) {
   text-transform: uppercase;
 }
 
-.badge.episodic {
-  background-color: var(--badge-episodic);
-  color: var(--badge-episodic-text);
+.badge.semantic {
+  background-color: rgba(46, 160, 67, 0.2);
+  color: #3fb950;
 }
-.badge.conversational {
-  background-color: var(--badge-conv);
-  color: var(--badge-conv-text);
+.badge.episodic {
+  background-color: rgba(210, 153, 34, 0.2);
+  color: #d2991f;
 }
 
 /* Category badges */

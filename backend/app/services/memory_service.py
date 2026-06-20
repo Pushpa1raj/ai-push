@@ -78,15 +78,15 @@ def process_and_save_memories(
             best_match.importance = importance
             best_match.created_at = datetime.now(timezone.utc)
             
-            if m_type == "conversational":
-                best_match.expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+            if m_type == "episodic":
+                best_match.expires_at = datetime.now(timezone.utc) + timedelta(days=30)
                 
             db.add(best_match)
         else:
-            # No semantic duplicate -> Insert new memory
+            # No duplicate -> Insert new memory
             expires_at = None
-            if m_type == "conversational":
-                expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+            if m_type == "episodic":
+                expires_at = datetime.now(timezone.utc) + timedelta(days=30)
                 
             memory = Memory(
                 memory_type=m_type,

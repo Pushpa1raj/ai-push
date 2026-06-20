@@ -266,7 +266,10 @@ const ChatPage: React.FC = () => {
   const renderMemory = (mem: MemoryOut) => (
     <div key={mem.id} className="card interactive" style={{ display: "flex", flexDirection: "column", gap: "8px", padding: "10px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <span className={`badge cat-${mem.category || "other"}`}>{mem.category || "other"}</span>
+        <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+          <span className={`badge ${mem.memory_type}`}>{mem.memory_type}</span>
+          <span className={`badge cat-${mem.category || "other"}`}>{mem.category || "other"}</span>
+        </div>
         <div style={{ display: "flex", gap: "2px" }}>
           {editingMemoryId !== mem.id && (
             <button className="icon-only" onClick={(e) => { e.stopPropagation(); setEditingMemoryId(mem.id); setEditingMemoryContent(mem.content); }} disabled={loading}>

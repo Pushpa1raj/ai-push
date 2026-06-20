@@ -3,17 +3,18 @@ import json
 from app.services.ollama_service import OllamaService
 
 VALID_CATEGORIES = {"personal", "education", "project", "preference", "goal", "other"}
+VALID_TYPES = {"semantic", "episodic"}
 
 SYSTEM_PROMPT = """
-You are a highly precise memory extraction system. Analyze the user and assistant messages and extract two types of memories: 'episodic' (long-term facts) and 'conversational' (short-term recent activities).
+You are a highly precise memory extraction system. Analyze the user and assistant messages and extract two types of memories: 'semantic' (facts, preferences, knowledge) and 'episodic' (events, actions, experiences).
 
 RULES:
-- episodic: High-value facts, user preferences, long-term goals, affiliations.
-- conversational: What the user is currently doing, recent bugs, immediate sprint progress.
+- semantic: Facts, user preferences, long-term goals, affiliations, knowledge.
+- episodic: Events that happened, actions taken, deployments, uploads, things done on a specific day.
 - DO NOT save low-value facts, temporary questions, greetings, or random facts.
 
 Each memory must include:
-- type: "episodic" or "conversational"
+- type: "semantic" or "episodic"
 - content: the memory text
 - category: one of "personal", "education", "project", "preference", "goal", "other"
 - importance: integer from 1 to 10
@@ -22,10 +23,11 @@ Format your response as a JSON list of objects. Return an empty list [] if nothi
 
 Example format:
 [
-  {"type": "episodic", "content": "User studies at Techno Main Salt Lake", "category": "education", "importance": 8},
-  {"type": "episodic", "content": "User is building Phus AI", "category": "project", "importance": 9},
-  {"type": "episodic", "content": "User's favorite color is blue", "category": "preference", "importance": 6},
-  {"type": "conversational", "content": "User was fixing sidebar bug", "category": "project", "importance": 5}
+  {"type": "semantic", "content": "User studies at Techno Main Salt Lake", "category": "education", "importance": 8},
+  {"type": "semantic", "content": "User is building Phus AI", "category": "project", "importance": 9},
+  {"type": "semantic", "content": "User's favorite color is blue", "category": "preference", "importance": 6},
+  {"type": "episodic", "content": "User deployed Phus AI today", "category": "project", "importance": 7},
+  {"type": "episodic", "content": "User uploaded a PDF yesterday", "category": "other", "importance": 5}
 ]
 """
 
@@ -75,6 +77,11 @@ def extract_memories(user_message: str, assistant_message: str, ollama_service: 
             valid_memories = []
             for m in memories:
                 if isinstance(m, dict) and "type" in m and "content" in m:
+                    # Extract and validate type
+                    m_type = str(m["type"]).lower()
+                    if m_type not in VALID_TYPES:
+                        m_type = "semantic"  # default facts to semantic
+                    
                     # Extract category, default to "other" if missing or invalid
                     category = str(m.get("category", "other")).lower()
                     if category not in VALID_CATEGORIES:
@@ -87,11 +94,12 @@ def extract_memories(user_message: str, assistant_message: str, ollama_service: 
                     except (ValueError, TypeError):
                         importance = 5
                     
+                    print(f"[MEMORY PIPELINE] Type: {m_type}")
                     print(f"[MEMORY PIPELINE] Category: {category}")
                     print(f"[MEMORY PIPELINE] Importance: {importance}")
                     
                     valid_memories.append({
-                        "type": str(m["type"]),
+                        "type": m_type,
                         "content": str(m["content"]),
                         "category": category,
                         "importance": importance,
